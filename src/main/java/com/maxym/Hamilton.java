@@ -39,6 +39,10 @@ public class Hamilton {
     }
 
     private static boolean haveParentStation(TreeNode treeNode, int station) {
+        if (treeNode.getStation() == station) {
+            return true;
+        }
+
         TreeNode parent = treeNode.getParent();
 
         while (parent != null) {
