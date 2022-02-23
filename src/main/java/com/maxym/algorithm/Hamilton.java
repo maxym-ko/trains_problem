@@ -1,6 +1,6 @@
 package com.maxym.algorithm;
 
-import com.maxym.algorithm.domain.Edge;
+import com.maxym.algorithm.domain.Connection;
 import com.maxym.algorithm.domain.Graph;
 import com.maxym.algorithm.domain.TreeNode;
 import org.apache.commons.collections4.BidiMap;
@@ -16,9 +16,9 @@ public class Hamilton {
     private Hamilton() {
     }
 
-    public static List<Edge> findCheapestPath(List<Edge> edges) {
-        BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(edges);
-        Graph graph = buildAdjacencyMatrix(edges, stationsMap);
+    public static List<Connection> findCheapestPath(List<Connection> connections) {
+        BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(connections);
+        Graph graph = buildAdjacencyMatrix(connections, stationsMap);
 
         double cheapestPrice = Double.MAX_VALUE;
         TreeNode lastChild = null;
@@ -36,9 +36,9 @@ public class Hamilton {
         return buildFullPath(lastChild, stationsMap.inverseBidiMap());
     }
 
-    public static double bruteForce(List<Edge> edges) {
-        BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(edges);
-        Graph graph = buildAdjacencyMatrix(edges, stationsMap);
+    public static double bruteForce(List<Connection> connections) {
+        BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(connections);
+        Graph graph = buildAdjacencyMatrix(connections, stationsMap);
 
         List<List<Integer>> permutations = generatePerm(new ArrayList<>(stationsMap.values()));
 
@@ -64,11 +64,11 @@ public class Hamilton {
         return cheapestPrice;
     }
 
-    private static BidiMap<Integer, Integer> mapStationsToIndex(List<Edge> edges) {
+    private static BidiMap<Integer, Integer> mapStationsToIndex(List<Connection> connections) {
         Set<Integer> stations = new LinkedHashSet<>();
-        for (Edge edge : edges) {
-            stations.add(edge.getFromStation());
-            stations.add(edge.getToStation());
+        for (Connection connection : connections) {
+            stations.add(connection.getFromStation());
+            stations.add(connection.getToStation());
         }
 
         int i = 0;
@@ -80,21 +80,21 @@ public class Hamilton {
         return stationMap;
     }
 
-    private static Graph buildAdjacencyMatrix(List<Edge> edges, Map<Integer, Integer> stationsMap) {
+    private static Graph buildAdjacencyMatrix(List<Connection> connections, Map<Integer, Integer> stationsMap) {
         Graph.Node[][] nodes = new Graph.Node[stationsMap.size()][];
         for (int i = 0; i < stationsMap.size(); i++) {
             nodes[i] = new Graph.Node[stationsMap.size()];
         }
 
-        for (Edge edge : edges) {
-            int fromStation = stationsMap.get(edge.getFromStation());
-            int toStation = stationsMap.get(edge.getToStation());
+        for (Connection connection : connections) {
+            int fromStation = stationsMap.get(connection.getFromStation());
+            int toStation = stationsMap.get(connection.getToStation());
 
             if (nodes[fromStation][toStation] == null) {
-                nodes[fromStation][toStation] = new Graph.Node(edge.getTrainId(), edge.getPrice());
-            } else if (edge.getPrice() < nodes[fromStation][toStation].getPrice()) {
-                nodes[fromStation][toStation].setTrainId(edge.getTrainId());
-                nodes[fromStation][toStation].setPrice(edge.getPrice());
+                nodes[fromStation][toStation] = new Graph.Node(connection.getTrainId(), connection.getPrice());
+            } else if (connection.getPrice() < nodes[fromStation][toStation].getPrice()) {
+                nodes[fromStation][toStation].setTrainId(connection.getTrainId());
+                nodes[fromStation][toStation].setPrice(connection.getPrice());
             }
         }
 
@@ -158,23 +158,23 @@ public class Hamilton {
                     .orElse(TreeNode.builder().fullPrice(Double.MAX_VALUE).build());
     }
 
-    private static List<Edge> buildFullPath(TreeNode node, Map<Integer, Integer> indexToStation) {
+    private static List<Connection> buildFullPath(TreeNode node, Map<Integer, Integer> indexToStation) {
         if (node == null) {
             return Collections.emptyList();
         }
 
-        List<Edge> path = new ArrayList<>();
+        List<Connection> path = new ArrayList<>();
 
         TreeNode parent = node.getParent();
         TreeNode child = node;
 
         while (parent != null) {
-            path.add(Edge.builder()
-                         .trainId(child.getTrainId())
-                         .fromStation(indexToStation.get(parent.getStation()))
-                         .toStation(indexToStation.get(child.getStation()))
-                         .price(child.getPrice())
-                         .build());
+            path.add(Connection.builder()
+                               .trainId(child.getTrainId())
+                               .fromStation(indexToStation.get(parent.getStation()))
+                               .toStation(indexToStation.get(child.getStation()))
+                               .price(child.getPrice())
+                               .build());
             child = parent;
             parent = parent.getParent();
         }

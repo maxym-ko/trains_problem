@@ -7,7 +7,7 @@ import lombok.ToString;
 @Getter
 @Builder
 @ToString
-public class Edge {
+public class Connection {
 
     private final int trainId;
 
