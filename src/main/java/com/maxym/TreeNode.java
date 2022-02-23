@@ -1,12 +1,16 @@
 package com.maxym;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @Getter
+@Builder
+@AllArgsConstructor
 public class TreeNode {
 
     private final int station;

@@ -1,5 +1,6 @@
 package com.maxym;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,24 +9,30 @@ public class Hamilton {
     private Hamilton() {
     }
 
-    public static double findCheapestPathPrice(int[][] graph) {
-        double cheapestPath = Double.MAX_VALUE;
+    public static int[] findCheapestPath(int[][] graph) {
+        double cheapestPrice = Double.MAX_VALUE;
+        TreeNode lastChild = null;
 
         for (int i = 0; i < graph.length; i++) {
-            double price = findCheapestPrice(graph, i);
-            cheapestPath = Math.min(price, cheapestPath);
+            TreeNode child = findCheapestPathLastChild(graph, i);
+            double price = child.getFullPrice();
+
+            if (price < cheapestPrice) {
+                cheapestPrice = price;
+                lastChild = child;
+            }
         }
 
-        return cheapestPath;
+        return buildFullPath(lastChild);
     }
 
-    private static double findCheapestPrice(int[][] graph, int startStation) {
+    private static TreeNode findCheapestPathLastChild(int[][] graph, int startStation) {
         TreeNode pathTree = new TreeNode(startStation);
         buildPathTree(graph, pathTree);
 
         List<TreeNode> endStations = findAllEndStations(pathTree, graph.length);
 
-        return getCheapestPathPrice(endStations);
+        return findCheapestPathLastChild(endStations);
     }
 
     private static void buildPathTree(int[][] graph, TreeNode currentNode) {
@@ -67,10 +74,36 @@ public class Hamilton {
         return children;
     }
 
-    private static double getCheapestPathPrice(List<TreeNode> nodes) {
+    private static TreeNode findCheapestPathLastChild(List<TreeNode> nodes) {
         return nodes.stream()
-                    .map(TreeNode::getFullPrice)
-                    .min(Double::compareTo)
-                    .orElse(Double.MAX_VALUE);
+                    .min(Comparator.comparingDouble(TreeNode::getFullPrice))
+                    .orElse(TreeNode.builder().fullPrice(Double.MAX_VALUE).build());
+    }
+
+    private static int[] buildFullPath(TreeNode node) {
+        if (node == null) {
+            return new int[]{};
+        }
+
+        int[] path = new int[node.getDepth()];
+        int i = 0;
+        path[i++] = node.getStation();
+
+        TreeNode parent = node.getParent();
+        while (parent != null) {
+            path[i++] = parent.getStation();
+            parent = parent.getParent();
+        }
+
+        reverse(path);
+        return path;
+    }
+
+    private static void reverse(int[] array) {
+        for (int i = 0; i < array.length / 2; i++) {
+            int temp = array[i];
+            array[i] = array[array.length - 1 - i];
+            array[array.length - 1 - i] = temp;
+        }
     }
 }
