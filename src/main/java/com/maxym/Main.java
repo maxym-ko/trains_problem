@@ -2,23 +2,49 @@ package com.maxym;
 
 import com.maxym.algorithm.Hamilton;
 import com.maxym.algorithm.domain.Edge;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) {
-        List<Edge> edges = new ArrayList<>();
-        edges.add(Edge.builder().trainId(12).fromStation(1).toStation(2).price(2).build());
-        edges.add(Edge.builder().trainId(13).fromStation(1).toStation(3).price(5).build());
-        edges.add(Edge.builder().trainId(23).fromStation(2).toStation(3).price(8).build());
-        edges.add(Edge.builder().trainId(24).fromStation(2).toStation(4).price(10).build());
-        edges.add(Edge.builder().trainId(34).fromStation(3).toStation(4).price(6).build());
-        edges.add(Edge.builder().trainId(42).fromStation(4).toStation(2).price(7).build());
-        edges.add(Edge.builder().trainId(43).fromStation(4).toStation(3).price(7).build());
+    public static void main(String[] args) throws CsvValidationException, IOException {
+        List<Edge> edges = readFile("D:\\temp\\trains_problem\\test_task_data.csv");
 
-        System.out.println(Arrays.toString(Hamilton.findCheapestPath(edges)));
+        List<Edge> cheapestPath = Hamilton.findCheapestPath(edges);
+
+        System.out.println("The cheapest price to visit all stations: " + cheapestPath.stream().map(Edge::getPrice).reduce(Double::sum));
+        System.out.println("The cheapest route to visit all stations: " + cheapestPath);
+    }
+
+    private static List<Edge> readFile(String filePath) throws IOException, CsvValidationException {
+        List<Edge> edges = new ArrayList<>();
+
+        try (CSVReader csvReader = getReader(filePath)) {
+            String[] values;
+            while ((values = csvReader.readNext()) != null) {
+                edges.add(Edge.builder()
+                              .trainId(Integer.parseInt(values[0]))
+                              .toStation(Integer.parseInt(values[2]))
+                              .fromStation(Integer.parseInt(values[1]))
+                              .price(Double.parseDouble(values[3]))
+                              .build());
+            }
+        }
+
+        return edges;
+    }
+
+    private static CSVReader getReader(String filePath) throws FileNotFoundException {
+        return new CSVReaderBuilder(new FileReader(filePath))
+            .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
+            .build();
     }
 }

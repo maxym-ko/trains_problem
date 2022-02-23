@@ -14,7 +14,7 @@ public class Hamilton {
     private Hamilton() {
     }
 
-    public static int[] findCheapestPath(List<Edge> edges) {
+    public static List<Edge> findCheapestPath(List<Edge> edges) {
         BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(edges);
         Graph graph = buildAdjacencyMatrix(edges, stationsMap);
 
@@ -128,34 +128,28 @@ public class Hamilton {
                     .orElse(TreeNode.builder().fullPrice(Double.MAX_VALUE).build());
     }
 
-    private static int[] buildFullPath(TreeNode node, Map<Integer, Integer> indexToStation) {
+    private static List<Edge> buildFullPath(TreeNode node, Map<Integer, Integer> indexToStation) {
         if (node == null) {
-            return new int[]{};
+            return Collections.emptyList();
         }
 
-        int[] path = new int[node.getDepth()];
-        int i = 0;
-        path[i++] = node.getStation();
+        List<Edge> path = new ArrayList<>();
 
         TreeNode parent = node.getParent();
+        TreeNode child = node;
+
         while (parent != null) {
-            path[i++] = parent.getStation();
+            path.add(Edge.builder()
+                         .trainId(child.getTrainId())
+                         .fromStation(indexToStation.get(parent.getStation()))
+                         .toStation(indexToStation.get(child.getStation()))
+                         .price(child.getPrice())
+                         .build());
+            child = parent;
             parent = parent.getParent();
         }
 
-        for (int j = 0; j < path.length; j++) {
-            path[j] = indexToStation.get(path[j]);
-        }
-
-        reverse(path);
+        Collections.reverse(path);
         return path;
-    }
-
-    private static void reverse(int[] array) {
-        for (int i = 0; i < array.length / 2; i++) {
-            int temp = array[i];
-            array[i] = array[array.length - 1 - i];
-            array[array.length - 1 - i] = temp;
-        }
     }
 }
