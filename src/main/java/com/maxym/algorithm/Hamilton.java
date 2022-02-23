@@ -1,9 +1,12 @@
 package com.maxym.algorithm;
 
+import com.maxym.algorithm.domain.Edge;
+import com.maxym.algorithm.domain.Graph;
 import com.maxym.algorithm.domain.TreeNode;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Hamilton {
@@ -11,11 +14,14 @@ public class Hamilton {
     private Hamilton() {
     }
 
-    public static int[] findCheapestPath(int[][] graph) {
+    public static int[] findCheapestPath(List<Edge> edges) {
+        BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(edges);
+        Graph graph = buildAdjacencyMatrix(edges, stationsMap);
+
         double cheapestPrice = Double.MAX_VALUE;
         TreeNode lastChild = null;
 
-        for (int i = 0; i < graph.length; i++) {
+        for (int i = 0; i < graph.getLength(); i++) {
             TreeNode child = findCheapestPathLastChild(graph, i);
             double price = child.getFullPrice();
 
@@ -25,24 +31,64 @@ public class Hamilton {
             }
         }
 
-        return buildFullPath(lastChild);
+        return buildFullPath(lastChild, stationsMap.inverseBidiMap());
     }
 
-    private static TreeNode findCheapestPathLastChild(int[][] graph, int startStation) {
+    private static BidiMap<Integer, Integer> mapStationsToIndex(List<Edge> edges) {
+        Set<Integer> stations = new LinkedHashSet<>();
+        for (Edge edge : edges) {
+            stations.add(edge.getFromStation());
+            stations.add(edge.getToStation());
+        }
+
+        int i = 0;
+        BidiMap<Integer, Integer> stationMap = new DualHashBidiMap<>();
+        for (Integer station : stations) {
+            stationMap.put(station, i++);
+        }
+
+        return stationMap;
+    }
+
+    private static Graph buildAdjacencyMatrix(List<Edge> edges, Map<Integer, Integer> stationsMap) {
+        Graph.Node[][] nodes = new Graph.Node[stationsMap.size()][];
+        for (int i = 0; i < stationsMap.size(); i++) {
+            nodes[i] = new Graph.Node[stationsMap.size()];
+        }
+
+        for (Edge edge : edges) {
+            int fromStation = stationsMap.get(edge.getFromStation());
+            int toStation = stationsMap.get(edge.getToStation());
+
+            if (nodes[fromStation][toStation] == null) {
+                nodes[fromStation][toStation] = new Graph.Node(edge.getTrainId(), edge.getPrice());
+            } else if (edge.getPrice() < nodes[fromStation][toStation].getPrice()) {
+                nodes[fromStation][toStation].setTrainId(edge.getTrainId());
+                nodes[fromStation][toStation].setPrice(edge.getPrice());
+            }
+        }
+
+        return new Graph(nodes);
+    }
+
+    private static TreeNode findCheapestPathLastChild(Graph graph, int startStation) {
         TreeNode pathTree = new TreeNode(startStation);
         buildPathTree(graph, pathTree);
 
-        List<TreeNode> endStations = findAllEndStations(pathTree, graph.length);
+        List<TreeNode> endStations = findAllEndStations(pathTree, graph.getLength());
 
         return findCheapestPathLastChild(endStations);
     }
 
-    private static void buildPathTree(int[][] graph, TreeNode currentNode) {
-        int[] prices = graph[currentNode.getStation()];
+    private static void buildPathTree(Graph graph, TreeNode currentNode) {
+        int currentStation = currentNode.getStation();
 
-        for (int i = 0; i < prices.length; i++) {
-            if (prices[i] != 0 && !haveParentStation(currentNode, i)) {
-                buildPathTree(graph, currentNode.addChild(i, prices[i]));
+        for (int i = 0; i < graph.getLength(); i++) {
+            if (graph.haveConnection(currentStation, i) && !haveParentStation(currentNode, i)) {
+                int trainId = graph.getTrainId(currentStation, i);
+                double price = graph.getPrice(currentStation, i);
+
+                buildPathTree(graph, currentNode.addChild(trainId, i, price));
             }
         }
     }
@@ -82,7 +128,7 @@ public class Hamilton {
                     .orElse(TreeNode.builder().fullPrice(Double.MAX_VALUE).build());
     }
 
-    private static int[] buildFullPath(TreeNode node) {
+    private static int[] buildFullPath(TreeNode node, Map<Integer, Integer> indexToStation) {
         if (node == null) {
             return new int[]{};
         }
@@ -95,6 +141,10 @@ public class Hamilton {
         while (parent != null) {
             path[i++] = parent.getStation();
             parent = parent.getParent();
+        }
+
+        for (int j = 0; j < path.length; j++) {
+            path[j] = indexToStation.get(path[j]);
         }
 
         reverse(path);
