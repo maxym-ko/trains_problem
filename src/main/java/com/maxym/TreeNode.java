@@ -13,6 +13,8 @@ public class TreeNode {
 
     private final double price;
 
+    private final double fullPrice;
+
     private final TreeNode parent;
 
     private final List<TreeNode> children;
@@ -20,19 +22,20 @@ public class TreeNode {
     private final int depth;
 
     public TreeNode(int station) {
-        this(station, 0, null, 1);
+        this(station, 0, 0, null, 1);
     }
 
-    private TreeNode(int station, double price, TreeNode parent, int depth) {
+    private TreeNode(int station, double price, double fullPrice, TreeNode parent, int depth) {
         this.station = station;
         this.price = price;
+        this.fullPrice = fullPrice;
         this.children = new LinkedList<>();
         this.parent = parent;
         this.depth = depth;
     }
 
     public TreeNode addChild(int station, double price) {
-        TreeNode childNode = new TreeNode(station, price, this, this.depth + 1);
+        TreeNode childNode = new TreeNode(station, price, this.fullPrice + price, this, this.depth + 1);
         this.children.add(childNode);
 
         return childNode;

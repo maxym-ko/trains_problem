@@ -65,21 +65,8 @@ public class Hamilton {
 
     private static double getCheapestPathPrice(List<TreeNode> nodes) {
         return nodes.stream()
-                    .map(Hamilton::getPathPrice)
+                    .map(TreeNode::getFullPrice)
                     .min(Double::compareTo)
                     .orElse(Double.MAX_VALUE);
-    }
-
-    private static double getPathPrice(TreeNode node) {
-        double price = node.getPrice();
-
-        TreeNode parent = node.getParent();
-
-        while (parent != null) {
-            price += parent.getPrice();
-            parent = parent.getParent();
-        }
-
-        return price;
     }
 }
