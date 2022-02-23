@@ -20,11 +20,12 @@ public class Main {
 
         List<Connection> cheapestPath = Hamilton.findCheapestPath(connections);
 
-        System.out.println("The cheapest price to visit all stations according to the bruteforce solution: " + Hamilton.findCheapestPathBruteForce(
-            connections));
-        System.out.println("The cheapest price to visit all stations: " + cheapestPath.stream().map(
-            Connection::getPrice).reduce(Double::sum));
-        System.out.println("The cheapest route to visit all stations: " + cheapestPath);
+        System.out.println("The cheapest price to visit all stations according to the bruteforce solution: " +
+                           Hamilton.findCheapestPathBruteForce(connections));
+        System.out.println("The cheapest price to visit all stations: " +
+                           cheapestPath.stream().map(Connection::getPrice).reduce(Double::sum));
+        System.out.println("The cheapest route to visit all stations: " +
+                           cheapestPath);
     }
 
     private static List<Connection> readFile(String filePath) throws IOException, CsvValidationException {
