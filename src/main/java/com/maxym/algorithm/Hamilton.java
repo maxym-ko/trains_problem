@@ -9,6 +9,8 @@ import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.maxym.algorithm.util.Utils.generatePerm;
+
 public class Hamilton {
 
     private Hamilton() {
@@ -32,6 +34,34 @@ public class Hamilton {
         }
 
         return buildFullPath(lastChild, stationsMap.inverseBidiMap());
+    }
+
+    public static double bruteForce(List<Edge> edges) {
+        BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(edges);
+        Graph graph = buildAdjacencyMatrix(edges, stationsMap);
+
+        List<List<Integer>> permutations = generatePerm(new ArrayList<>(stationsMap.values()));
+
+        double cheapestPrice = Integer.MAX_VALUE;
+        for (List<Integer> permutation : permutations) {
+            double currentPrice = 0;
+            for (int i = 0; i < permutation.size() - 1; i++) {
+                int k = permutation.get(i);
+                int m = permutation.get(i + 1);
+
+                if (!graph.haveConnection(k, m)) {
+                    currentPrice = Double.MAX_VALUE;
+                    break;
+                }
+
+                currentPrice += graph.getPrice(k, m);
+            }
+            if (currentPrice < cheapestPrice) {
+                cheapestPrice = currentPrice;
+            }
+        }
+
+        return cheapestPrice;
     }
 
     private static BidiMap<Integer, Integer> mapStationsToIndex(List<Edge> edges) {

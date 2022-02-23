@@ -20,6 +20,7 @@ public class Main {
 
         List<Edge> cheapestPath = Hamilton.findCheapestPath(edges);
 
+        System.out.println("The cheapest price to visit all stations according to the bruteforce solution: " + Hamilton.bruteForce(edges));
         System.out.println("The cheapest price to visit all stations: " + cheapestPath.stream().map(Edge::getPrice).reduce(Double::sum));
         System.out.println("The cheapest route to visit all stations: " + cheapestPath);
     }
