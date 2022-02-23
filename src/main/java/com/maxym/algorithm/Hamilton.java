@@ -36,7 +36,7 @@ public class Hamilton {
         return buildFullPath(lastChild, stationsMap.inverseBidiMap());
     }
 
-    public static double bruteForce(List<Connection> connections) {
+    public static double findCheapestPathBruteForce(List<Connection> connections) {
         BidiMap<Integer, Integer> stationsMap = mapStationsToIndex(connections);
         Graph graph = buildAdjacencyMatrix(connections, stationsMap);
 
