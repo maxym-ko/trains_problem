@@ -1,4 +1,6 @@
-package com.maxym;
+package com.maxym.algorithm;
+
+import com.maxym.algorithm.domain.TreeNode;
 
 import java.util.Comparator;
 import java.util.List;

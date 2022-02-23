@@ -1,5 +1,7 @@
 package com.maxym;
 
+import com.maxym.algorithm.Hamilton;
+
 import java.util.Arrays;
 
 public class Main {

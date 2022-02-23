@@ -1,4 +1,4 @@
-package com.maxym;
+package com.maxym.algorithm.domain;
 
 
 import lombok.AllArgsConstructor;
