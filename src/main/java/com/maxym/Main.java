@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class Main {
 
@@ -28,27 +29,54 @@ public class Main {
                            cheapestPath);
     }
 
-    private static List<Connection> readFile(String filePath) throws IOException, CsvValidationException {
+    private static List<Connection> readFile(String filePath, Function<String[], Connection> connectionBuilder) throws IOException, CsvValidationException {
         List<Connection> connections = new ArrayList<>();
 
         try (CSVReader csvReader = getReader(filePath)) {
             String[] values;
             while ((values = csvReader.readNext()) != null) {
-                connections.add(Connection.builder()
-                                          .trainId(Integer.parseInt(values[0]))
-                                          .toStation(Integer.parseInt(values[2]))
-                                          .fromStation(Integer.parseInt(values[1]))
-                                          .price(Double.parseDouble(values[3]))
-                                          .build());
+                connections.add(connectionBuilder.apply(values));
             }
         }
 
         return connections;
     }
 
+    private static List<Connection> readFile(String filePath) throws IOException, CsvValidationException {
+        return readFile(filePath, values -> Connection.builder()
+                                                       .trainId(Integer.parseInt(values[0]))
+                                                       .toStation(Integer.parseInt(values[2]))
+                                                       .fromStation(Integer.parseInt(values[1]))
+                                                       .price(Double.parseDouble(values[3]))
+                                                       .build());
+    }
+
+    private static List<Connection> readFileForTimeProblem(String filePath) throws IOException, CsvValidationException {
+        return readFile(filePath, values -> Connection.builder()
+                                                      .trainId(Integer.parseInt(values[0]))
+                                                      .toStation(Integer.parseInt(values[2]))
+                                                      .fromStation(Integer.parseInt(values[1]))
+                                                      .price(findTimeDifference(parseTime(values[5]), parseTime(values[4])))
+                                                      .build());
+    }
+
+    private static int findTimeDifference(int arrivalTime, int departureTime) {
+        return (arrivalTime > departureTime) ? 24 * 60 - (arrivalTime - departureTime)
+                                             : departureTime - arrivalTime;
+    }
+
     private static CSVReader getReader(String filePath) throws FileNotFoundException {
         return new CSVReaderBuilder(new FileReader(filePath))
             .withCSVParser(new CSVParserBuilder().withSeparator(';').build())
             .build();
+    }
+
+    private static int parseTime(String time) {
+        String[] timeSplit = time.split(":");
+
+        int hours = Integer.parseInt(timeSplit[0]);
+        int minutes = Integer.parseInt(timeSplit[1]);
+
+        return hours * 60 + minutes;
     }
 }
